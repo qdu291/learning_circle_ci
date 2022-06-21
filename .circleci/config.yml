@@ -17,6 +17,32 @@ jobs:
       - run:
           name: "Say hello"
           command: "echo Hello, World!"
+  Fetch-code:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - run:
+          name: "Getting code"
+          command: |
+            ls -al
+            echo 'Your repo files'
+  Using-node:
+    docker:
+      - image: cimg/node:17.2
+    steps:
+      - run:
+          name: Running node container
+          command: |
+            node -v
+  Now-complete:
+    docker:
+      - image: alpine:3.15
+    steps:
+      - run:
+          name: Approval Complete
+          command: |
+            echo "The work is complete"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -24,3 +50,18 @@ workflows:
   say-hello-workflow:
     jobs:
       - say-hello
+      - Fetch-code:
+          requires:
+            - say-hello
+      - Using-node:
+          requires:
+            - Fetch-code
+      - Hold-for-Approval:
+          type: approval
+          requires:
+            - Using-node
+            - Fetch-code
+      - Now-complete:
+          requires:
+            - Hold-for-Approval
+      
